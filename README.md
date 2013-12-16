@@ -1,14 +1,7 @@
-# Dispatch 2.x
+# Dispatch 3.x
 
 Dispatch is another PHP micro-framework. It's very small and very straightforward
 to use. No classes, no namespaces.
-
-## Note on Dispatch 1.x
-
-If you're looking for Dispatch 1.x, switch to the
-[**1.x branch**](https://github.com/noodlehaus/dispatch/tree/1.x). Some functions
-in Dispatch 1.x are no longer present in 2.x core and have been moved to
-[dispatch-extras](https://github.com/noodlehaus/dispatch-extras).
 
 ## Requirements
 Dispatch requires at least **PHP 5.4** to work.
@@ -324,7 +317,7 @@ For Dispatch to work with layouts, views and partials, you need three settings:
 * `dispatch.layout` - the layout file to use (without .html.php) from the views path
 * your layout, views and partials should end with `.html.php`
 
-The layout file you specify needs to contain a call to `content()`. This will plug in
+The layout file you specify needs to contain a `<?= $content ?>`. This will plug in
 the contents of your view into your layout file.
 
 ```php
@@ -334,7 +327,7 @@ the contents of your view into your layout file.
 <body>
 
 <!-- this call will plug in the contents of your view -->
-<?= content() ?>
+<?= $content ?>
 
 </body>
 </html>
