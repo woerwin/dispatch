@@ -790,8 +790,9 @@ function on($method, $path, $callback = null) {
   }
 }
 /**
- * helper function to get the pathinfo.
- * move from function "dispatch"
+ * Helper function to get the request URI's path.
+ *
+ * @return $string path of the request.
  */
 function path() {
 
