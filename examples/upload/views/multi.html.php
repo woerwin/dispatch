@@ -1,8 +1,8 @@
-<? if ($file): ?>
+<?php if ($file): ?>
 <pre>
-<? var_dump($file) ?>
+<?php var_dump($file) ?>
 </pre>
-<? endif; ?>
+<?php endif; ?>
 <form method="POST" action="/multi" enctype="multipart/form-data">
   <input type="file" name="file[]" id="file">
   <input type="file" name="file[]" id="file">
