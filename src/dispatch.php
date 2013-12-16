@@ -793,7 +793,8 @@ function on($method, $path, $callback = null) {
 }
 
 /**
- * Helper function to get the request URI's path.
+ * Helper function to get the request URI's path, after translating
+ * the value using config dispatch.router.
  *
  * @return $string path of the request.
  */
@@ -819,6 +820,7 @@ function path() {
 
   return $path;
 }
+
 /**
  * Entry point for the library.
  *
@@ -832,8 +834,9 @@ function dispatch($method = null, $path = null) {
   // see if we were invoked with params
   $method = ($method ? $method : $_SERVER['REQUEST_METHOD']);
 
-  // move the code to a function.
+  // get logical request path
   $path = path();
+  
   // check for override
   $override = request_headers('x-http-method-override');
   $override = $override ? $override : params('_method');
