@@ -162,18 +162,6 @@ function url($str) {
 }
 
 /**
- * BC - marked for deprecation
- */
-function u($str) {
-  trigger_error(
-    "The function u() has been marked for deprecation. ".
-    "Please use url() instead",
-    E_USER_DEPRECATED
-  );
-  return urlencode($str);
-}
-
-/**
  * Convenience wrapper for htmlentities().
  *
  * @param string $str string to encode
@@ -185,18 +173,6 @@ function u($str) {
 function html($str, $flags = -1, $enc = 'UTF-8', $denc = true) {
   $flags = ($flags < 0 ? ENT_COMPAT|ENT_HTML401 : $flags);
   return htmlentities($str, $flags, $enc, $denc);
-}
-
-/**
- * BC - marked for deprecation
- */
-function h($str, $flags = -1, $enc = 'UTF-8', $denc = true) {
-  trigger_error(
-    "The function h() has been marked for deprecation. ".
-    "Please use html() instead",
-    E_USER_DEPRECATED
-  );
-  return html($str, $flags, $enc, $denc);
 }
 
 /**
@@ -695,18 +671,6 @@ function prefix($name = null, $cb = null) {
   array_push($paths, trim($name, '/'));
   call_user_func($cb);
   array_pop($paths);
-}
-
-/**
- * BC for prefix()
- */
-function resource($name = null, $cb = null) {
-  trigger_error(
-    "The function resource() has been marked for deprecation. ".
-    "Please use prefix() instead",
-    E_USER_DEPRECATED
-  );
-  prefix($name, $cb);
 }
 
 /**
