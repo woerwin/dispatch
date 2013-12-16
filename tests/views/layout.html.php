@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <head><title>sample layout</title></head>
 <body>
-<?= content() ?>
+<?= $content ?>
 </body>
 </html>

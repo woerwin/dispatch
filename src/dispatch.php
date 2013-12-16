@@ -215,7 +215,7 @@ function params($name = null, $default = null) {
 
   // setup source on first call
   if (!$source) {
-    
+
     // by default, only get values from $_GET and $_POST
     $source = array_merge($_GET, $_POST);
 
@@ -504,49 +504,55 @@ function redirect($path, $code = 302, $condition = true) {
 }
 
 /**
- * Returns the contents of the template partial $view, using
- * $locals (optional).
+ * Returns the contents of a view file using values from
+ * $locals (optional) during rendering.
  *
  * @param string $view path to partial
  * @param array $locals optional, hash to load as scope variables
  *
  * @return string content of the partial.
  */
-function partial($view, $locals = null) {
+function partial($view, $locals = array()) {
 
   if (($view_root = config('dispatch.views')) == null)
     error(500, "config('dispatch.views') is not set.");
 
-  if (is_array($locals) && count($locals))
+  if ($locals && is_array($locals))
     extract($locals, EXTR_SKIP);
 
-  $path = basename($view);
-  $view = preg_replace('/'.$path.'$/', "_{$path}", $view);
-  $view = $view_root.DIRECTORY_SEPARATOR.$view.'.html.php';
-
-  $html = '';
-
-  if (file_exists($view)) {
-    ob_start();
-    require $view;
-    $html = ob_get_clean();
-  } else {
-    error(500, "partial [{$view}] not found");
-  }
-
-  return $html;
+  ob_start();
+  require $view_root.DIRECTORY_SEPARATOR.$view.'.html.php';
+  return ob_get_clean();
 }
 
 /**
- * Convenience function for storing/fetching content to be
- * plugged into the layout within render().
+ * Returns the contents of the view file $view using values from
+ * $locals (optional), and using the layout file specified by
+ * $layout, or the one configured using 'dispatch.layout' config.
+ * The results are not echoed, but returned as a string.
  *
- * @param string $value optional, value to use as content.
+ * @param string $view path to partial
+ * @param array $locals optional, hash to load as scope variables
+ * @param string $layout optional, layout file to use
  *
- * @return string content
+ * @return string content of the view file.
  */
-function content($value = null) {
-  return scope('$content$', $value);
+function template($view, $locals = array(), $layout = null) {
+
+  $content = partial($view, $locals);
+
+  if ($layout !== false) {
+
+    if ($layout == null) {
+      $layout = config('dispatch.layout');
+      $layout = $layout ?: 'layout';
+    }
+
+    $locals['content'] = $content;
+    return partial($layout, $locals);
+  }
+
+  return $content;
 }
 
 /**
@@ -560,33 +566,7 @@ function content($value = null) {
  * @return string contents of the view + layout
  */
 function render($view, $locals = array(), $layout = null) {
-
-  $view_root = config('dispatch.views');
-  $view_root = (!$view_root ? 'layout' : $view_root);
-
-  if ($locals && is_array($locals))
-    extract($locals, EXTR_SKIP);
-
-  ob_start();
-  require $view_root.DIRECTORY_SEPARATOR.$view.'.html.php';
-  content(trim(ob_get_clean()));
-
-  if ($layout !== false) {
-
-    if ($layout == null) {
-      $layout = config('dispatch.layout');
-      $layout = ($layout == null) ? 'layout' : $layout;
-    }
-
-    $layout = $view_root.DIRECTORY_SEPARATOR.$layout.'.html.php';
-
-    ob_start();
-    require $layout;
-    echo trim(ob_get_clean());
-
-  } else {
-    echo content();
-  }
+  echo template($view, $locals, $layout);
 }
 
 /**
@@ -850,25 +830,25 @@ function on($method, $path, $callback = null) {
  * move from function "dispatch"
  */
 function path() {
-  
+
   static $path;
-  
+
   if (!$path) {
 
     // normalize routing base, if site is in sub-dir
     $path = parse_url($path ? $path : $_SERVER['REQUEST_URI'], PHP_URL_PATH);
     $root = config('dispatch.router');
     $base = site(true);
-  
+
     // strip base from path
     if ($base !== null)
       $path = preg_replace('@^'.preg_quote($base).'@', '', $path);
-  
+
     // if we have a routing file (no mod_rewrite), strip it from the URI
     if ($root)
       $path = preg_replace('@^/?'.preg_quote(trim($root, '/')).'@i', '', $path);
   }
-  
+
   return $path;
 }
 /**
