@@ -42,7 +42,7 @@ function error($code, $callback = null) {
   else
     echo "{$code} {$message}\n";
 
-  exit;
+  throw new Exception($message, $code);
 }
 
 /**
@@ -476,7 +476,7 @@ function redirect($path, $code = 302, $condition = true) {
   if (!$condition)
     return;
   @header("Location: {$path}", true, $code);
-  exit;
+  throw new Exception("Redirect: {$path}", $code);
 }
 
 /**
@@ -743,9 +743,6 @@ function on($method, $path, $callback = null) {
     if (!in_array($method, array_keys($routes)))
       error(400, 'Method not supported');
 
-    // call our before filters
-    before($method, $path);
-
     // flag for 404 check
     $found = false;
 
@@ -767,26 +764,39 @@ function on($method, $path, $callback = null) {
         $val = urldecode($val);
       });
 
-      // if we have symbols, init params and run filters
-      if (count($symbols)) {
-        params($values);
-        filter($values);
+      try {
+
+        // call our before filters
+        before($method, $path);
+
+        // if we have symbols, init params and run filters
+        if (count($symbols)) {
+          params($values);
+          filter($values);
+        }
+
+        // invoke callback
+        call_user_func_array($info['callback'], array_values($values));
+
+        // shouldn't do a 404 after the break
+        $found = true;
+
+        // call our after filters
+        after($method, $path);
+
+      } catch (Exception $ex) {
+        // it's an error() or redirect(), so we don't want a 404
+        $found = true;
       }
-
-      // invoke callback
-      call_user_func_array($info['callback'], array_values($values));
-
-      // shouldn't do a 404 after the break
-      $found = true;
 
       break;
     }
 
-    // call our after filters
-    after($method, $path);
-
-    if (!$found)
-      error(404, 'Page not found');
+    if (!$found) {
+      try {
+        error(404, 'Page not found');
+      } catch (Exception $ex) {}
+    }
   }
 }
 /**
