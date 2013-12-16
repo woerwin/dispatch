@@ -348,6 +348,18 @@ render('index', ['name' => 'bob'], false);
 ?>
 ```
 
+If you want to just fetch the rendered code for a view, call `template()` instead.
+
+```php
+<?php
+// render index, using some locals, using the default layout
+$content = template('index', ['name' => 'joe']);
+
+// render index, using some locals, without the layout
+$content = template('index', ['name' => 'joe'], false);
+?>
+```
+
 For partials, the files are expected to begin with the `_` character, and can be
 loaded via `partial($path, $locals = [])`.
 
