@@ -724,81 +724,74 @@ function on($method, $path, $callback = null) {
     }
 
     // create a route entry for this path on every method
-    foreach ($method as $m)
+    foreach ($method as $m) {
       $routes[$m][$path] = array(
         'regex' => '@^'.$regex.'$@',
         'callback' => $callback
       );
+    }
 
-  } else {
+    // this is a mapping call, we're done
+    return;
+  }
 
-    // not a string? invalid
-    if (!is_string($method))
-      error(400, 'Invalid method');
+  // not a string? invalid
+  if (!is_string($method))
+    error(400, 'Invalid method');
 
-    // then normalize
-    $method = strtoupper($method);
+  // then normalize
+  $method = strtoupper($method);
 
-    // for invokation, only support strings
-    if (!in_array($method, array_keys($routes)))
-      error(400, 'Method not supported');
+  // for invokation, only support strings
+  if (!in_array($method, array_keys($routes)))
+    error(400, 'Method not supported');
 
-    // flag for 404 check
-    $found = false;
+  // flag for 404 check
+  $found = false;
 
-    // callback is null, so this is a route invokation. look up the callback.
-    foreach ($routes[$method] as $pattern => $info) {
-
-      // skip non-matching routes
-      if (!preg_match($info['regex'], $path, $values))
-        continue;
-
-      // construct the params for the callback
-      array_shift($values);
-      preg_match_all('@:([\w]+)@', $pattern, $symbols);
-      $symbols = $symbols[1];
-      $values = array_intersect_key($values, array_flip($symbols));
-
-      // decode values
-      array_walk($values, function (&$val, $key) {
-        $val = urldecode($val);
-      });
-
-      try {
-
-        // call our before filters
-        before($method, $path);
-
-        // if we have symbols, init params and run filters
-        if (count($symbols)) {
-          params($values);
-          filter($values);
-        }
-
-        // invoke callback
-        call_user_func_array($info['callback'], array_values($values));
-
-        // shouldn't do a 404 after the break
-        $found = true;
-
-        // call our after filters
-        after($method, $path);
-
-      } catch (Exception $ex) {
-        // it's an error() or redirect(), so we don't want a 404
-        $found = true;
-      }
-
+  // callback is null, so this is a route invokation. look up the callback.
+  foreach ($routes[$method] as $pattern => $info) {
+    if (preg_match($info['regex'], $path, $values)) {
+      $found = true;
       break;
     }
-
-    if (!$found) {
-      try {
-        error(404, 'Page not found');
-      } catch (Exception $ex) {}
-    }
   }
+
+  try {
+
+    // quickly exit on 404
+    if (!$found)
+      error(404, 'Page not found');
+
+    // construct the params for the callback
+    array_shift($values);
+    preg_match_all('@:([\w]+)@', $pattern, $symbols);
+    $symbols = $symbols[1];
+    $values = array_intersect_key($values, array_flip($symbols));
+
+    // decode values
+    array_walk($values, function (&$val, $key) {
+      $val = urldecode($val);
+    });
+
+    // call our before filters
+    before($method, $path);
+
+    // if we have symbols, init params and run filters
+    if (count($symbols)) {
+      params($values);
+      filter($values);
+    }
+
+    // invoke callback
+    call_user_func_array($info['callback'], array_values($values));
+    
+    // call our after filters
+    after($method, $path);
+
+  } catch (Exception $ex) {}
 }
+
 /**
  * Helper function to get the request URI's path.
  *
