@@ -171,7 +171,7 @@ function url($str) {
  * @return string encoded string
  */
 function html($str, $flags = -1, $enc = 'UTF-8', $denc = true) {
-  $flags = ($flags < 0 ? ENT_COMPAT|ENT_HTML401 : $flags);
+  $flags = ($flags < 0 ? ENT_QUOTES : $flags);
   return htmlentities($str, $flags, $enc, $denc);
 }
 
@@ -785,7 +785,7 @@ function on($method, $path, $callback = null) {
 
     // invoke callback
     call_user_func_array($info['callback'], array_values($values));
-    
+
     // call our after filters
     after($method, $path);
 
@@ -836,7 +836,7 @@ function dispatch($method = null, $path = null) {
 
   // get logical request path
   $path = path();
-  
+
   // check for override
   $override = request_headers('x-http-method-override');
   $override = $override ? $override : params('_method');
